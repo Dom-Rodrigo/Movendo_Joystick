@@ -18,6 +18,9 @@
 #define I2C_SCL 15
 #define endereco 0x3C
 
+uint16_t x_center_left = (127/2) - 4; // Valores centrais pra posiconar retangulo no display
+uint16_t y_center_top = (64/2) - 4;
+
 
 bool red_on = false;
 bool blue_on = false;
@@ -82,6 +85,11 @@ void handle_leds_joystick_pwm(uint16_t vrx_value, uint16_t vry_value){
             pwm_set_gpio_level(LED_RED, 0);
 }
 
+void handle_display_rect(uint16_t vrx_value, uint16_t vry_value){
+            ssd1306_rect(&ssd, y_center_top, x_center_left, 8, 8, true, true); // Desenha um retângulo
+            ssd1306_send_data(&ssd);
+}
+
 int main()
 {
     stdio_init_all();
@@ -136,6 +144,7 @@ int main()
         if (leds_pwm){
             handle_leds_joystick_pwm(vrx_value, vry_value);
         }
+        handle_display_rect(vrx_value, vry_value);
 
         printf("X: %d\n", vrx_value);
         printf("Y: %d\n", vry_value);
