@@ -3,6 +3,7 @@
 #include "hardware/adc.h"
 #include "pico/bootrom.h"
 #include "hardware/pwm.h"
+#include "inc/ssd1306.h"
 
 #define VRX 27 // input 1 s:24 h:1885 b:4090
 #define VRY 26 // input 0 s:24 h:2087 b:4090
@@ -12,10 +13,19 @@
 #define BUTTON_JOYSTICK 22
 #define BUTTON_A 5
 #define BUTTON_BOOTSEL 6
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
+
 
 bool red_on = false;
 bool blue_on = false;
 bool leds_pwm = true;
+bool cor = true;
+
+ssd1306_t ssd; // Inicializa a estrutura do display
+
 
 uint32_t last_time;
 void gpio_irq_handler(uint gpio, uint32_t event_mask) {
@@ -27,6 +37,10 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
         }
         if (!gpio_get(BUTTON_JOYSTICK)) {
             gpio_put(LED_GREEN, !gpio_get(LED_GREEN));
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            cor = !cor;
+            ssd1306_send_data(&ssd);
+
             last_time = current_time;
         }
         if (!gpio_get(BUTTON_A)) {
@@ -72,6 +86,21 @@ int main()
 {
     stdio_init_all();
     adc_init();
+    i2c_init(I2C_PORT, 400 * 1000); // Inicia o i2c com 400kHz
+
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_pull_up(I2C_SDA); // Pull up the data line
+    gpio_pull_up(I2C_SCL); // Pull up the clock line
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+
+
     uint slice_red = pwm_setup(LED_RED);
     uint slice_blue = pwm_setup(LED_BLUE);
 

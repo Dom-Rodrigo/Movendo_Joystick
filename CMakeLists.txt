@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Movendo_joystick Movendo_joystick.c )
+add_executable(Movendo_joystick Movendo_joystick.c inc/ssd1306.c)
 
 pico_set_program_name(Movendo_joystick "Movendo_joystick")
 pico_set_program_version(Movendo_joystick "0.1")
@@ -58,6 +58,7 @@ target_link_libraries(Movendo_joystick
         hardware_adc
         hardware_pwm
         pico_bootrom
+        hardware_i2c
         
         )
 
