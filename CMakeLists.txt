@@ -56,6 +56,7 @@ target_include_directories(Movendo_joystick PRIVATE
 # Add any user requested libraries
 target_link_libraries(Movendo_joystick 
         hardware_adc
+        hardware_pwm
         pico_bootrom
         
         )

@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "pico/bootrom.h"
+#include "hardware/pwm.h"
 
 #define VRX 27 // input 1 s:24 h:1885 b:4090
 #define VRY 26 // input 0 s:24 h:2087 b:4090
@@ -23,19 +24,26 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
     }   
 }
 
+uint pwm_setup(uint LED){
+    gpio_set_function(LED, GPIO_FUNC_PWM);
+    uint slice = pwm_gpio_to_slice_num(LED);
+    pwm_set_wrap(slice, 4090);
+    pwm_set_clkdiv(slice, 69); // 442Hz
+    pwm_set_enabled(slice, true);
+
+    return slice;
+}
+
+
 int main()
 {
     stdio_init_all();
     adc_init();
+    uint slice_red = pwm_setup(LED_RED);
+    uint slice_blue = pwm_setup(LED_BLUE);
 
     adc_gpio_init(27);
     adc_gpio_init(26);
-
-    gpio_init(LED_BLUE);
-    gpio_set_dir(LED_BLUE, GPIO_OUT);
-
-    gpio_init(LED_RED);
-    gpio_set_dir(LED_RED, GPIO_OUT);
 
     gpio_init(BUTTON_BOOTSEL);
     gpio_set_dir(BUTTON_BOOTSEL, GPIO_IN);
@@ -49,32 +57,30 @@ int main()
         adc_select_input(1);
         uint16_t vrx_value = adc_read();
         
-        if (vry_value < 2087+500 && vry_value > 2087-500)
+        if (vry_value < 2087+600 && vry_value > 2087-600) // VALOR DE Y CONTROLA LED AZUL, APAGA SE TIVER NO MEIO
             blue_on = false;
         else 
             blue_on = true;
     
-        if (vrx_value < 1880+500 && vrx_value > 1880-500)
+        if (vrx_value < 1880+600 && vrx_value > 1880-600) // VALOR DE X CONTROLA LED VERMELHO, APAGA SE TIVER NO MEIO
             red_on = false;
         else
             red_on = true;        
         
         if (blue_on)
-            gpio_put(LED_BLUE, 1);
+            pwm_set_gpio_level(LED_BLUE, vry_value);
         else
-            gpio_put(LED_BLUE, 0);
+            pwm_set_gpio_level(LED_BLUE, 0);
 
-                
         if (red_on)
-            gpio_put(LED_RED, 1);
+            pwm_set_gpio_level(LED_RED, vrx_value);
         else
-            gpio_put(LED_RED, 0);
-
+            pwm_set_gpio_level(LED_RED, 0);
 
 
         printf("X: %d\n", vrx_value);
         printf("Y: %d\n", vry_value);
-        sleep_ms(500);
+        sleep_ms(200);
 
     }
 }
