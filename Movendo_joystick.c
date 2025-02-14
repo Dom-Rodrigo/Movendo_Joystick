@@ -18,14 +18,10 @@
 #define I2C_SCL 15
 #define endereco 0x3C
 
-uint16_t x_center_left = (127/2) - 4; // Valores centrais pra posiconar retangulo no display
-uint16_t y_center_top = (64/2) - 4;
-
-
 bool red_on = false;
 bool blue_on = false;
 bool leds_pwm = true;
-bool cor = true;
+bool borda = false;
 
 ssd1306_t ssd; // Inicializa a estrutura do display
 
@@ -40,9 +36,7 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
         }
         if (!gpio_get(BUTTON_JOYSTICK)) {
             gpio_put(LED_GREEN, !gpio_get(LED_GREEN));
-            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-            cor = !cor;
-            ssd1306_send_data(&ssd);
+            borda = !borda;
 
             last_time = current_time;
         }
@@ -87,7 +81,16 @@ void handle_leds_joystick_pwm(uint16_t vrx_value, uint16_t vry_value){
 
 void handle_display_rect(uint16_t vrx_value, uint16_t vry_value){
             ssd1306_rect(&ssd, vry_value/(4090/64), vrx_value/(4090/127), 8, 8, true, true); // Desenha um retângulo
-            ssd1306_send_data(&ssd);
+            ssd1306_send_data(&ssd); // LEMBRAR DE FAZER QUE NÂO SAIA DA BORDA
+}
+
+void blit(bool borda){
+        ssd1306_fill(&ssd, false);
+        if (borda){
+            ssd1306_rect(&ssd, 3, 3, 122, 58, borda, !borda); // Desenha um retângulo
+        }
+        ssd1306_send_data(&ssd);
+
 }
 
 int main()
@@ -135,7 +138,8 @@ int main()
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     while (true) {
-        ssd1306_fill(&ssd, false);
+
+        blit(borda);
         adc_select_input(0);
         uint16_t vry_value = adc_read();
 
