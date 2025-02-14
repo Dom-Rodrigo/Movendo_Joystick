@@ -80,8 +80,15 @@ void handle_leds_joystick_pwm(uint16_t vrx_value, uint16_t vry_value){
 }
 
 void handle_display_rect(uint16_t vrx_value, uint16_t vry_value){
-            ssd1306_rect(&ssd, vry_value/(4090/64), vrx_value/(4090/127), 8, 8, true, true); // Desenha um retângulo
+            int y_pos = vry_value/(4090/64);
+            int x_pos = vrx_value/(4090/127);
+
+            if (y_pos >= 53) // Impossibilita escapar da borda de baixo
+                y_pos = 53;
+                
+            ssd1306_rect(&ssd, y_pos, x_pos, 8, 8, true, true); // Desenha um retângulo
             ssd1306_send_data(&ssd); // LEMBRAR DE FAZER QUE NÂO SAIA DA BORDA
+            printf("x: %d, y: %d\n", x_pos, y_pos);
 }
 
 void blit(bool borda){
@@ -151,8 +158,6 @@ int main()
         }
         handle_display_rect(vrx_value, vry_value);
 
-        printf("X: %d\n", vrx_value);
-        printf("Y: %d\n", vry_value);
         sleep_ms(200);
 
     }
