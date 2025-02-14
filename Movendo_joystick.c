@@ -86,7 +86,7 @@ void handle_leds_joystick_pwm(uint16_t vrx_value, uint16_t vry_value){
 }
 
 void handle_display_rect(uint16_t vrx_value, uint16_t vry_value){
-            ssd1306_rect(&ssd, y_center_top, x_center_left, 8, 8, true, true); // Desenha um retângulo
+            ssd1306_rect(&ssd, vry_value/(4090/64), vrx_value/(4090/127), 8, 8, true, true); // Desenha um retângulo
             ssd1306_send_data(&ssd);
 }
 
@@ -135,6 +135,7 @@ int main()
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     while (true) {
+        ssd1306_fill(&ssd, false);
         adc_select_input(0);
         uint16_t vry_value = adc_read();
 
