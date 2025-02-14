@@ -6,8 +6,10 @@
 
 #define VRX 27 // input 1 s:24 h:1885 b:4090
 #define VRY 26 // input 0 s:24 h:2087 b:4090
+#define LED_GREEN 11
 #define LED_BLUE 12
 #define LED_RED 13
+#define BUTTON_JOYSTICK 22
 #define BUTTON_BOOTSEL 6
 
 bool red_on = false;
@@ -20,6 +22,10 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
         if (!gpio_get(BUTTON_BOOTSEL)) {
             last_time = current_time;
             rom_reset_usb_boot(0, 0);
+        }
+        if (!gpio_get(BUTTON_JOYSTICK)) {
+            gpio_put(LED_GREEN, !gpio_get(LED_GREEN));
+            last_time = current_time;
         }
     }   
 }
@@ -44,12 +50,21 @@ int main()
 
     adc_gpio_init(27);
     adc_gpio_init(26);
+    
+    gpio_init(LED_GREEN);
+    gpio_set_dir(LED_GREEN, GPIO_OUT);
+
+    gpio_init(BUTTON_JOYSTICK);
+    gpio_set_dir(BUTTON_JOYSTICK, GPIO_IN);
+    gpio_pull_up(BUTTON_JOYSTICK);
 
     gpio_init(BUTTON_BOOTSEL);
     gpio_set_dir(BUTTON_BOOTSEL, GPIO_IN);
     gpio_pull_up(BUTTON_BOOTSEL);
 
     gpio_set_irq_enabled_with_callback(BUTTON_BOOTSEL, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+    gpio_set_irq_enabled_with_callback(BUTTON_JOYSTICK, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
     while (true) {
         adc_select_input(0);
         uint16_t vry_value = adc_read();
