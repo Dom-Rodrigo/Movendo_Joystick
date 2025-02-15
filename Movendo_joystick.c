@@ -85,6 +85,15 @@ void handle_display_rect(uint16_t vrx_value, uint16_t vry_value){
 
             if (y_pos >= 53) // Impossibilita escapar da borda de baixo
                 y_pos = 53;
+            
+            if (y_pos <= 3) // Impossibilita escapar da borda de cima
+                y_pos = 3;
+            
+            if (x_pos >= 117) // Impossibilita escapar da borda da direita
+                x_pos = 117;
+            
+            if (x_pos <= 3) // Impossibilita escapar da borda da direita
+                x_pos = 3;
                 
             ssd1306_rect(&ssd, y_pos, x_pos, 8, 8, true, true); // Desenha um retângulo
             ssd1306_send_data(&ssd); // LEMBRAR DE FAZER QUE NÂO SAIA DA BORDA
