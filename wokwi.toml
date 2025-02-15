@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/Movendo_joystick.uf2'
+elf = 'build/Movendo_joystick.elf'
