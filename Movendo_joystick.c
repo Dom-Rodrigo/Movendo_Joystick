@@ -24,13 +24,13 @@ bool red_on = false;
 bool blue_on = false;
 bool leds_pwm = true;
 bool borda = false;
-uint y_borda = 3;
-uint x_borda = 3;
+volatile uint y_borda = 3;
+volatile uint x_borda = 3;
 
 ssd1306_t ssd; // Inicializa a estrutura do display
 
 
-uint32_t last_time;
+volatile uint32_t last_time;
 void gpio_irq_handler(uint gpio, uint32_t event_mask) {
     uint32_t current_time = to_us_since_boot(get_absolute_time());
     if (current_time - last_time > 200000){
